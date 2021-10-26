@@ -1,0 +1,121 @@
+Parameters:
+  WithOwner:
+    Description: Si quiere la tabla con datos del usuarios
+    Type: String
+    AllowedValues: ["SI", "NO"]
+
+Conditions:
+  MyConditionsYes: !Equals [ !Ref WithOwner, "SI"]
+  MyConditionNo: !Equals [ !Ref WithOwner, "NO"]
+
+   
+
+Resources:
+  MyDynamoTableWhenNo:
+    Type: AWS::DynamoDB::Table    
+    #Condicion Cuando no es con owner   
+    Condition: MyConditionNo
+    Properties:
+      BillingMode: "PAY_PER_REQUEST"
+      TableName: Mascotas
+      AttributeDefinitions:
+        - AttributeName: "Nombre"
+          AttributeType: "S"
+        - AttributeName: "Especie"
+          AttributeType: "S"
+        - AttributeName: "Edad"
+          AttributeType: "N"
+        - AttributeName: "ID"
+          AttributeType: "S"
+        - AttributeName: "De_Alta"
+          AttributeType: "B"
+      KeySchema:
+        - AttributeName: "ID"
+          KeyType: "HASH"
+        - AttributeName: "Nombre"
+          KeyType: "RANGE"
+      
+      GlobalSecondaryIndexes:
+        - IndexName: EspecieEdad
+          KeySchema:
+          - AttributeName: "Especie"
+            KeyType: HASH
+          - AttributeName: "Edad"
+            KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "Nombre"
+              - "ID"
+              - "De_Alta"
+            ProjectionType: "INCLUDE"
+        - IndexName: "De_Alta"
+          KeySchema:
+          - AttributeName: "De_Alta"
+            KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "ID"
+              - "Especie"
+              - "Edad"
+              - "Nombre"
+            ProjectionType: "INCLUDE"
+            
+  #Condicion Cuando es con Owner
+  MyDynamoTableWhenYes:
+    Type: AWS::DynamoDB::Table 
+    Condition: MyConditionsYes
+    Properties:
+      BillingMode: "PAY_PER_REQUEST"
+      TableName: Mascota
+      AttributeDefinitions:
+        - AttributeName: "Nombre"
+          AttributeType: "S"
+        - AttributeName: "Especie"
+          AttributeType: "S"
+        - AttributeName: "Edad"
+          AttributeType: "N"
+        - AttributeName: "Propietario"
+          AttributeType: "S"
+        - AttributeName: "ID_Propietario"
+          AttributeType: "S"
+        - AttributeName: "De_Alta"
+          AttributeType: "B"
+      KeySchema:
+        - AttributeName: "ID_Propietario"
+          KeyType: "HASH"
+        - AttributeName: "Nombre"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: EspecieEdad
+          KeySchema:
+          - AttributeName: "Especie"
+            KeyType: "HASH"
+          - AttributeName: "Edad"
+            KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "ID_Propietario"
+              - "Propietario"
+              - "Edad"
+              - "De_Alta"
+            ProjectionType: "INCLUDE"
+        - IndexName: PropietarioDeAlta
+          KeySchema:
+          - AttributeName: "Propietario"
+            KeyType: "HASH"
+          - AttributeName: "De_Alta"
+            KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "Nombre"
+              - "Especie"
+              - "Edad"
+              - "ID_Propietario"
+            ProjectionType: "INCLUDE"
+    
+
+    
+
+    
+
+  
